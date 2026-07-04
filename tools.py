@@ -138,9 +138,16 @@ def execute_test_run(
     if headed and config.ALLOW_HEADED:
         cmd.append("--headed")
 
+    # subprocess.run(list, shell=True) is NOT equivalent across platforms: on POSIX,
+    # only cmd[0] becomes the actual shell command and the rest are passed as unused
+    # positional shell args ($1, $2, ...) -- silently running bare "npx" with no
+    # arguments. Join into a single string so shell=True behaves the same (and
+    # correctly) on both Windows and Linux.
+    cmd_str = " ".join(cmd)
+
     try:
         result = subprocess.run(
-            cmd,
+            cmd_str,
             cwd=config.PLAYWRIGHT_REPO_PATH,
             capture_output=True,
             text=True,
