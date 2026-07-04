@@ -59,4 +59,7 @@ def chat_stream(payload: ChatRequest, request: Request):
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Absolute path — a relative "static" only resolves correctly if the process's working
+# directory happens to match, which isn't guaranteed across every host's start-command
+# invocation.
+app.mount("/", StaticFiles(directory=str(config.BASE_DIR / "static"), html=True), name="static")
