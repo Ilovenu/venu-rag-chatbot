@@ -147,3 +147,80 @@ input.addEventListener('keydown', (e) => {
     composer.requestSubmit();
   }
 });
+
+// ---------- QE / Run Tests panel ----------
+
+const qeToggle = document.getElementById('qeToggle');
+const qePanel = document.getElementById('qePanel');
+const qeRunBtn = document.getElementById('qeRunBtn');
+const qeProgress = document.getElementById('qeProgress');
+
+qeToggle.addEventListener('click', () => {
+  const isOpen = !qePanel.hidden;
+  qePanel.hidden = isOpen;
+  qeToggle.setAttribute('aria-expanded', String(!isOpen));
+});
+
+function addToolResultMessage(result) {
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant';
+  const label = document.createElement('span');
+  label.className = 'msg-label';
+  label.textContent = 'Assistant';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  if (result.error) {
+    bubble.textContent = result.error;
+  } else {
+    bubble.textContent = `Ran: ${result.command}\n\n${result.passed} passed, ${result.failed} failed.` +
+      (result.failed_test_names && result.failed_test_names.length
+        ? `\n\nFailed:\n${result.failed_test_names.map((n) => `- ${n}`).join('\n')}`
+        : '');
+  }
+
+  row.append(label, bubble);
+
+  const badgeRow = document.createElement('div');
+  badgeRow.className = 'sources';
+  badgeRow.innerHTML = '<span class="tool-badge">⚙ run_playwright_tests</span>';
+  row.appendChild(badgeRow);
+
+  thread.appendChild(row);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+qeRunBtn.addEventListener('click', async () => {
+  const suite = document.getElementById('qeSuite').value || undefined;
+  const project = document.getElementById('qeProject').value || undefined;
+  const tag = document.getElementById('qeTag').value || undefined;
+  const test_file = document.getElementById('qeTestFile').value.trim() || undefined;
+  const headed = document.getElementById('qeHeaded').checked;
+
+  const summaryParts = [];
+  if (test_file) summaryParts.push(test_file);
+  else if (suite) summaryParts.push(`${suite} suite`);
+  else summaryParts.push('all tests');
+  if (project) summaryParts.push(`on ${project}`);
+  if (tag) summaryParts.push(tag);
+  addUserMessage(`Run ${summaryParts.join(' ')}`);
+
+  qeRunBtn.disabled = true;
+  qeProgress.hidden = false;
+  starters.style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/run-tests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ suite, project, tag, test_file, headed }),
+    });
+    const result = await resp.json();
+    addToolResultMessage(result);
+  } catch (err) {
+    addToolResultMessage({ error: 'Something went wrong reaching the server. Please try again.' });
+  } finally {
+    qeRunBtn.disabled = false;
+    qeProgress.hidden = true;
+  }
+});

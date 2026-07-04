@@ -1,6 +1,7 @@
 """FastAPI backend: non-streaming and streaming chat endpoints, static file serving."""
 
 import json
+from typing import Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
@@ -9,6 +10,7 @@ from pydantic import BaseModel
 
 import config
 import llm
+import tools
 from tools import RateLimiter
 
 app = FastAPI(title="Chat with Venu")
@@ -18,6 +20,14 @@ chat_limiter = RateLimiter(config.CHAT_RATE_LIMIT_PER_HOUR)
 
 class ChatRequest(BaseModel):
     message: str
+
+
+class RunTestsRequest(BaseModel):
+    suite: Optional[str] = None
+    project: Optional[str] = None
+    tag: Optional[str] = None
+    test_file: Optional[str] = None
+    headed: bool = False
 
 
 def client_key(request: Request) -> str:
@@ -57,6 +67,23 @@ def chat_stream(payload: ChatRequest, request: Request):
         yield f"event: done\ndata: {json.dumps({'sources': result['sources']})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@app.post("/api/run-tests")
+def run_tests(payload: RunTestsRequest, request: Request):
+    """Direct, deterministic test execution — bypasses the LLM entirely so explicit UI
+    controls (suite/project/tag/test file/headed) always do exactly what was selected,
+    with no risk of the model mis-parsing a natural-language request."""
+    key = client_key(request)
+    result = tools.execute_test_run(
+        rate_limit_key=key,
+        suite=payload.suite,
+        project=payload.project,
+        tag=payload.tag,
+        test_file=payload.test_file,
+        headed=payload.headed,
+    )
+    return result
 
 
 # Absolute path — a relative "static" only resolves correctly if the process's working

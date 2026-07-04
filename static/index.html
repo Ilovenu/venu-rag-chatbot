@@ -13,8 +13,60 @@
         <h1>Ask about <span class="accent-word">Venu's</span> work</h1>
         <p>Answers are grounded in his resume, project READMEs, and actual source code — retrieved, not recalled.</p>
       </div>
-      <div class="status-pill"><span class="status-dot"></span>Live</div>
+      <div class="header-actions">
+        <div class="status-pill"><span class="status-dot"></span>Live</div>
+        <button class="qe-toggle" id="qeToggle" type="button" aria-expanded="false">Run Tests ▾</button>
+      </div>
     </header>
+
+    <div class="qe-panel" id="qePanel" hidden>
+      <div class="qe-row">
+        <label>Suite
+          <select id="qeSuite">
+            <option value="">Any</option>
+            <option value="ui">UI</option>
+            <option value="api">API</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </label>
+        <label>Browser project
+          <select id="qeProject">
+            <option value="">Any</option>
+            <option value="chromium">Chromium</option>
+            <option value="firefox">Firefox</option>
+            <option value="webkit">WebKit</option>
+            <option value="api">API</option>
+            <option value="hybrid-chromium">Hybrid (Chromium)</option>
+          </select>
+        </label>
+        <label>Tag
+          <select id="qeTag">
+            <option value="">Any</option>
+            <option value="@smoke">@smoke</option>
+            <option value="@regression">@regression</option>
+            <option value="@hybrid">@hybrid</option>
+            <option value="@api">@api</option>
+          </select>
+        </label>
+      </div>
+      <div class="qe-row">
+        <label class="qe-file-label">Specific test file <span class="qe-hint">(optional, path under tests/)</span>
+          <input type="text" id="qeTestFile" placeholder="ui/auth/login.spec.ts" />
+        </label>
+        <label class="qe-checkbox">
+          <input type="checkbox" id="qeHeaded" />
+          Headed browser
+          <span class="qe-hint">(visible window — local runs only; no-op on this cloud deployment, which has no display)</span>
+        </label>
+      </div>
+      <div class="qe-row qe-actions">
+        <button class="qe-run-btn" id="qeRunBtn" type="button">Run</button>
+        <div class="qe-progress" id="qeProgress" hidden>
+          <div class="qe-progress-bar"></div>
+          <span class="qe-progress-label">Running tests…</span>
+        </div>
+      </div>
+    </div>
 
     <div class="thread" id="thread">
       <div class="msg-row assistant">
