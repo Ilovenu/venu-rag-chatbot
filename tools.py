@@ -150,9 +150,21 @@ def execute_test_run(
     except subprocess.TimeoutExpired:
         return {"error": "Test run timed out after 5 minutes."}
 
+    # Logged server-side (captured by the host's log stream) so failures can be
+    # diagnosed without needing a dedicated debug endpoint.
+    print(f"[run_playwright_tests] cmd={' '.join(cmd)!r} exit_code={result.returncode}")
+    print(f"[run_playwright_tests] stdout:\n{result.stdout[-3000:]}")
+    print(f"[run_playwright_tests] stderr:\n{result.stderr[-2000:]}")
+
     parsed = _parse_results(result.stdout)
-    return {
+    response = {
         "exit_code": result.returncode,
         "command": " ".join(cmd),
         **parsed,
     }
+    if result.returncode != 0 and parsed["passed"] == 0 and parsed["failed"] == 0:
+        # Real execution failure (not just failing tests) -- surface a hint instead of
+        # silently reporting "0 passed, 0 failed" as if the suite were simply empty.
+        response["error"] = "The test run failed to execute (see stderr for details)."
+        response["stderr_snippet"] = result.stderr[-500:]
+    return response
