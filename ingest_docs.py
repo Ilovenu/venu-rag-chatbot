@@ -191,10 +191,38 @@ def chunk_markdown(path, source_name: str) -> list[dict]:
     return chunks
 
 
+def chunk_plain_sections(path, source_name: str, doc_type: str) -> list[dict]:
+    """Split a plain-text file on '---' divider lines into per-entry sections (e.g. one
+    per employer), titling each from its first line."""
+    text = path.read_text(encoding="utf-8")
+    raw_sections = [s.strip() for s in re.split(r"\n-{3,}\n", text) if s.strip()]
+
+    chunks = []
+    chunk_index = 0
+    for section in raw_sections:
+        first_line = section.splitlines()[0].strip()
+        title = first_line.removeprefix("Company:").strip() if first_line.startswith("Company:") else first_line.title()
+        for piece in recursive_split(section, MAX_CHUNK_CHARS, CHUNK_OVERLAP):
+            chunks.append(
+                {
+                    "document": piece,
+                    "metadata": {
+                        "source": source_name,
+                        "doc_type": doc_type,
+                        "section": title,
+                        "chunk_index": chunk_index,
+                    },
+                }
+            )
+            chunk_index += 1
+    return chunks
+
+
 def main() -> None:
     chunks = chunk_resume()
     chunks += chunk_markdown(config.MCP_AGENT_README_PATH, "mcp_agent_readme.md")
     chunks += chunk_markdown(config.LANGCHAIN_README_PATH, "langchain_readme.md")
+    chunks += chunk_plain_sections(config.WORK_HISTORY_PATH, "work_history.txt", "work_history")
 
     print(f"Collected {len(chunks)} portfolio chunks.")
 

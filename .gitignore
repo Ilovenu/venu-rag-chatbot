@@ -5,3 +5,7 @@ __pycache__/
 *.pyc
 data/chroma_db/
 playwright-repo-clone/
+
+# Not for ingestion/commit — may contain sensitive personal documents (signatures,
+# salary, addresses). Reviewed manually before anything from data/source/ is added.
+data/source/*.zip

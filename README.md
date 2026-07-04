@@ -5,8 +5,8 @@ projects, and the **actual source code** of those projects.
 
 ## What it does
 
-- **Resume + portfolio Q&A** — grounded in the real resume PDF and both project READMEs,
-  chunked by section/heading (not naive character splits).
+- **Resume + portfolio Q&A** — grounded in the real resume PDF, both project READMEs, and
+  a work-history document, chunked by section/heading (not naive character splits).
 - **Codebase Q&A** — indexes the actual TypeScript (Playwright E2E framework) and Python
   (LangChain automation framework) source, chunked per class/function/test so answers
   cite a real `file:line-range`.
@@ -19,7 +19,7 @@ action beyond answering from the indexed documents.
 ## Architecture
 
 ```
-ingest_docs.py   → chunks resume.pdf + READMEs        → Chroma "portfolio" collection
+ingest_docs.py   → chunks resume.pdf + READMEs + work_history.txt → Chroma "portfolio" collection
 ingest_code.py   → chunks vendored/ source (ts + py)   → Chroma "codebase" collection
 retrieval.py     → queries both collections, merges + formats context with citations
 llm.py           → Groq chat completions, grounded system prompt
@@ -79,6 +79,15 @@ python query_cli.py "What testing frameworks does Venu know?"
 Since this is deployed for anyone to use, not just you: a per-IP rate limit on
 `/api/chat` (`CHAT_RATE_LIMIT_PER_HOUR`, default 60, in-memory — no Redis needed at this
 scale) bounds Groq API cost from public traffic.
+
+## Source documents
+
+Everything under `data/source/` is committed to this **public** repo and served to
+**unauthenticated** visitors — only material safe for that audience belongs there.
+`work_history.txt` (sourced from an internal immigration questionnaire) had all PII
+(SSN, passport/I-94 numbers, date of birth, home addresses, phone, personal email,
+salary) manually stripped before being added, keeping only employer names/addresses,
+job titles, dates, and duties. Do not add unredacted personal documents to this folder.
 
 ## Known limitations (documented tradeoffs, not bugs)
 

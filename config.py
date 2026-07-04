@@ -17,6 +17,7 @@ SOURCE_DIR = BASE_DIR / "data" / "source"
 RESUME_PATH = SOURCE_DIR / "resume.pdf"
 MCP_AGENT_README_PATH = SOURCE_DIR / "mcp_agent_readme.md"
 LANGCHAIN_README_PATH = SOURCE_DIR / "langchain_readme.md"
+WORK_HISTORY_PATH = SOURCE_DIR / "Venu.txt"
 
 # Used only by the test-runner tool, which needs a full, live, `npm install`-ed clone
 # with Playwright browsers available — not just source text. Locally this is the real
