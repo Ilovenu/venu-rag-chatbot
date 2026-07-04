@@ -154,11 +154,82 @@ const qeToggle = document.getElementById('qeToggle');
 const qePanel = document.getElementById('qePanel');
 const qeRunBtn = document.getElementById('qeRunBtn');
 const qeProgress = document.getElementById('qeProgress');
+const qeModeServer = document.getElementById('qeModeServer');
+const qeModeLocal = document.getElementById('qeModeLocal');
+const qeServerActions = document.getElementById('qeServerActions');
+const qeLocalActions = document.getElementById('qeLocalActions');
+const qeLocalCommands = document.getElementById('qeLocalCommands');
+const qeCopyBtn = document.getElementById('qeCopyBtn');
+
+const REPO_URL = 'https://github.com/Ilovenu/MCP_Agent.git';
 
 qeToggle.addEventListener('click', () => {
   const isOpen = !qePanel.hidden;
   qePanel.hidden = isOpen;
   qeToggle.setAttribute('aria-expanded', String(!isOpen));
+});
+
+function setQeMode(mode) {
+  const isLocal = mode === 'local';
+  qeModeServer.setAttribute('aria-selected', String(!isLocal));
+  qeModeLocal.setAttribute('aria-selected', String(isLocal));
+  qeServerActions.hidden = isLocal;
+  qeLocalActions.hidden = !isLocal;
+  if (isLocal) updateLocalCommands();
+}
+
+qeModeServer.addEventListener('click', () => setQeMode('server'));
+qeModeLocal.addEventListener('click', () => setQeMode('local'));
+
+function currentQeSelection() {
+  return {
+    suite: document.getElementById('qeSuite').value || undefined,
+    project: document.getElementById('qeProject').value || undefined,
+    tag: document.getElementById('qeTag').value || undefined,
+    test_file: document.getElementById('qeTestFile').value.trim() || undefined,
+    headed: document.getElementById('qeHeaded').checked,
+  };
+}
+
+function updateLocalCommands() {
+  const { suite, project, tag, test_file, headed } = currentQeSelection();
+
+  const parts = ['npx playwright test'];
+  if (test_file) parts.push(`tests/${test_file}`);
+  else if (suite) parts.push(`tests/${suite}`);
+  if (project) parts.push(`--project=${project}`);
+  if (tag) parts.push(`--grep=${tag}`);
+  if (headed) parts.push('--headed');
+  const testCmd = parts.join(' ');
+
+  qeLocalCommands.textContent =
+    `git clone ${REPO_URL}\n` +
+    `cd MCP_Agent\n` +
+    `npm ci\n` +
+    `npx playwright install${project ? ' ' + project : ''}\n` +
+    `${testCmd}`;
+}
+
+['qeSuite', 'qeProject', 'qeTag', 'qeTestFile', 'qeHeaded'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', () => {
+    if (!qeLocalActions.hidden) updateLocalCommands();
+  });
+});
+
+qeCopyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(qeLocalCommands.textContent);
+    const original = qeCopyBtn.textContent;
+    qeCopyBtn.textContent = 'Copied!';
+    setTimeout(() => { qeCopyBtn.textContent = original; }, 1500);
+  } catch (err) {
+    // Clipboard API unavailable (e.g. insecure context) — selection is the fallback.
+    const range = document.createRange();
+    range.selectNodeContents(qeLocalCommands);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
 });
 
 function addToolResultMessage(result) {

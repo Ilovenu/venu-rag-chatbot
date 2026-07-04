@@ -20,6 +20,10 @@
     </header>
 
     <div class="qe-panel" id="qePanel" hidden>
+      <div class="qe-mode-tabs" role="tablist">
+        <button class="qe-mode-tab" id="qeModeServer" type="button" aria-selected="true">Run here</button>
+        <button class="qe-mode-tab" id="qeModeLocal" type="button" aria-selected="false">Run on your machine</button>
+      </div>
       <div class="qe-row">
         <label>Suite
           <select id="qeSuite">
@@ -59,12 +63,17 @@
           <span class="qe-hint">(visible window — local runs only; no-op on this cloud deployment, which has no display)</span>
         </label>
       </div>
-      <div class="qe-row qe-actions">
+      <div class="qe-row qe-actions" id="qeServerActions">
         <button class="qe-run-btn" id="qeRunBtn" type="button">Run</button>
         <div class="qe-progress" id="qeProgress" hidden>
           <div class="qe-progress-bar"></div>
           <span class="qe-progress-label">Running tests…</span>
         </div>
+      </div>
+      <div class="qe-local" id="qeLocalActions" hidden>
+        <p class="qe-hint qe-local-hint">This runs nothing on this website — copy these commands into your own terminal to run the real suite on your own machine, using your own browsers.</p>
+        <pre class="qe-code" id="qeLocalCommands"></pre>
+        <button class="qe-copy-btn" id="qeCopyBtn" type="button">Copy commands</button>
       </div>
     </div>
 
