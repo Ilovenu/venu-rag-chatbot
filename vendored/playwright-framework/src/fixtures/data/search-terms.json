@@ -1,0 +1,7 @@
+[
+  { "term": "Dress", "expectMinResults": 1 },
+  { "term": "Tshirt", "expectMinResults": 1 },
+  { "term": "Jeans", "expectMinResults": 1 },
+  { "term": "Top", "expectMinResults": 1 },
+  { "term": "zzz-nonexistent-product-xyz", "expectMinResults": 0 }
+]
