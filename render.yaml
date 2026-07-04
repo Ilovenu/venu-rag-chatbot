@@ -5,8 +5,6 @@ services:
     plan: free
     buildCommand: >
       pip install -r requirements.txt &&
-      git clone --depth 1 https://github.com/Ilovenu/MCP_Agent.git playwright-repo-clone &&
-      cd playwright-repo-clone && npm ci && npx playwright install chromium firefox webkit && cd .. &&
       python ingest_docs.py &&
       python ingest_code.py
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
@@ -19,11 +17,5 @@ services:
         value: ./data/chroma_db
       - key: TOP_K
         value: "4"
-      - key: PLAYWRIGHT_REPO_PATH
-        value: ./playwright-repo-clone
       - key: CHAT_RATE_LIMIT_PER_HOUR
         value: "60"
-      - key: TEST_RUN_RATE_LIMIT_PER_HOUR
-        value: "3"
-      - key: ALLOW_HEADED
-        value: "false"
